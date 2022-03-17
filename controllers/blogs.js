@@ -61,7 +61,7 @@ blogRouter.put("/:id", async (request, response) => {
   });
 
   if (blog) {
-    response.json(blog);
+    response.json(await blog.populate("user", { blogs: 0 }));
   } else {
     response.status(404).end();
   }

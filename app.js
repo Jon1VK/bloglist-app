@@ -5,10 +5,10 @@ const app = express();
 const cors = require("cors");
 const userRouter = require("./controllers/users");
 const blogRouter = require("./controllers/blogs");
+const loginRouter = require("./controllers/login");
 const middleware = require("./utils/middleware");
 const logger = require("./utils/logger");
 const mongoose = require("mongoose");
-const loginRouter = require("./controllers/login");
 
 logger.info("connecting to MongoDB");
 
@@ -27,6 +27,12 @@ app.use(middleware.tokenExtractor);
 app.use("/api/users", userRouter);
 app.use("/api/blogs", blogRouter);
 app.use("/api/login", loginRouter);
+
+if (process.env.NODE_ENV === "test") {
+  const testRouter = require("./controllers/tests");
+  app.use("/api/tests", testRouter);
+}
+
 app.use(middleware.errorHandler);
 
 module.exports = app;
