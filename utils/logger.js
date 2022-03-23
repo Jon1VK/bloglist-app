@@ -11,12 +11,12 @@ const noop = () => {};
 const logger =
   process.env.NODE_ENV === "test"
     ? {
-      info: noop,
-      error: noop,
-    }
+        info: noop,
+        error: noop,
+      }
     : {
-      info,
-      error,
-    };
+        info,
+        error,
+      };
 
 module.exports = logger;
