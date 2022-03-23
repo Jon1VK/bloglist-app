@@ -10,7 +10,7 @@ testRouter.post("/reset", async (request, response) => {
   userFactory.create({
     username: "admin",
     password: "admin",
-    name: "admin",
+    name: "Admin",
   });
 
   response.status(204).end();

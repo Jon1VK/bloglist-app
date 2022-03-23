@@ -9,12 +9,15 @@ const loginRouter = require("./controllers/login");
 const middleware = require("./utils/middleware");
 const logger = require("./utils/logger");
 const mongoose = require("mongoose");
+const seedDb = require("./db/seed");
 
 logger.info("connecting to MongoDB");
 
 mongoose
   .connect(config.MONGODB_URI)
   .then(() => {
+    seedDb();
+    setInterval(seedDb, 86400000);
     logger.info("connected to MongoDB");
   })
   .catch((error) => {
@@ -22,6 +25,7 @@ mongoose
   });
 
 app.use(cors());
+app.use(express.static("public"));
 app.use(express.json());
 app.use(middleware.tokenExtractor);
 app.use("/api/users", userRouter);
