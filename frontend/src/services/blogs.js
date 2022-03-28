@@ -5,32 +5,32 @@ const getAllBlogs = () => {
   return axios.get(baseUrl).then((response) => response.data);
 };
 
-const createBlog = (title, author, url) => {
+const createBlog = (newBlog) => {
   return axios
-    .post(baseUrl, { title, author, url })
+    .post(baseUrl, newBlog)
     .then((response) => response.data)
     .catch((error) => {
       throw new Error(error.response.data.error);
     });
 };
 
-const updateBlogLikes = (id, likes) => {
+const updateBlog = (updatedBlog) => {
   return axios
-    .put(baseUrl + id, { likes })
+    .put(baseUrl + updatedBlog.id, updatedBlog)
     .then((response) => response.data)
     .catch((error) => {
       throw new Error(error.response.data.error);
     });
 };
 
-const deleteBlog = (id) => {
-  return axios.delete(baseUrl + id);
+const deleteBlog = (blog) => {
+  return axios.delete(baseUrl + blog.id);
 };
 
 const blogService = {
   getAll: getAllBlogs,
   create: createBlog,
-  updateLikes: updateBlogLikes,
+  update: updateBlog,
   delete: deleteBlog,
 };
 

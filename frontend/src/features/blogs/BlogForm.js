@@ -1,5 +1,10 @@
 import { useState } from "react";
-import blogService from "../services/blogs";
+import { useDispatch } from "react-redux";
+import {
+  setNotification,
+  setErrorNotification,
+} from "../notification/notificationSlice";
+import { createBlog } from "./blogsSlice";
 
 const formStyle = {
   display: "flex",
@@ -7,22 +12,28 @@ const formStyle = {
   alignItems: "flex-start",
 };
 
-const BlogForm = ({ onSuccess, onError }) => {
+const BlogForm = ({ onSuccess }) => {
+  const dispatch = useDispatch();
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [url, setUrl] = useState("");
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    blogService
-      .create(title, author, url)
-      .then((blog) => {
+    dispatch(createBlog({ title, author, url }))
+      .unwrap()
+      .then(() => {
+        dispatch(
+          setNotification(`A new blog ${title} by ${author} was created`)
+        );
+        onSuccess();
         setTitle("");
         setAuthor("");
         setUrl("");
-        onSuccess(blog);
       })
-      .catch(onError);
+      .catch((error) => {
+        dispatch(setErrorNotification(error.message));
+      });
   };
 
   return (
