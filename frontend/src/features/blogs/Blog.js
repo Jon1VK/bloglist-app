@@ -1,66 +1,99 @@
-import PropTypes from "prop-types";
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
-import { setNotification } from "../notification/notificationSlice";
-import { updateBlog, deleteBlog } from "./blogsSlice";
+import { useEffect } from "react";
+import { Button, Form, ListGroup } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  setErrorNotification,
+  setNotification,
+} from "../notification/notificationSlice";
+import {
+  updateBlog,
+  deleteBlog,
+  selectBlogById,
+  fetchBlog,
+  createBlogComment,
+} from "./blogsSlice";
 
-const blogStyle = {
-  paddingTop: 10,
-  paddingLeft: 2,
-  border: "solid",
-  borderWidth: 1,
-  marginBottom: 5,
-};
-
-const Blog = ({ blog, user }) => {
+const Blog = () => {
   const dispatch = useDispatch();
-  const [visible, setVisible] = useState(false);
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.session.user);
+  const { blogId } = useParams();
+  const blog = useSelector((state) => selectBlogById(state, blogId));
 
-  const toggleVisibility = () => {
-    setVisible(!visible);
-  };
+  useEffect(() => {
+    dispatch(fetchBlog(blogId));
+  }, [dispatch, blogId]);
 
   const likeBlog = () => {
     dispatch(updateBlog({ ...blog, likes: blog.likes + 1 }))
       .unwrap()
-      .then(dispatch(setNotification(`You liked blog ${blog.title}`)));
+      .then(() => {
+        dispatch(setNotification(`You liked blog ${blog.title}`));
+      });
   };
 
   const removeBlog = () => {
     dispatch(deleteBlog(blog))
       .unwrap()
-      .then(dispatch(setNotification(`You deleted blog ${blog.title}`)));
+      .then(() => {
+        navigate("/");
+      });
   };
 
-  const detailsStyle = {
-    display: visible ? "block" : "none",
+  const addComment = (event) => {
+    event.preventDefault();
+    const comment = event.target.elements.comment.value;
+    dispatch(createBlogComment({ blogId: blog.id, comment }))
+      .unwrap()
+      .then(() => {
+        event.target.elements.comment.value = "";
+        dispatch(setNotification(`You added a comment ${comment}`));
+      })
+      .catch((error) => dispatch(setErrorNotification(error.message)));
   };
+
+  if (!blog) return null;
 
   return (
-    <div style={blogStyle}>
-      <div>
-        {blog.title} by {blog.author}{" "}
-        <button onClick={toggleVisibility}>{visible ? "hide" : "view"}</button>
-      </div>
-      <div className="blog__details" style={detailsStyle}>
-        <div>{blog.url}</div>
+    <>
+      <h2 className="my-3">{blog.title}</h2>
+      <p>
+        <a href={blog.url}>{blog.url}</a>
+      </p>
+      <p>
+        {blog.likes} likes{" "}
+        <Button variant="success" onClick={likeBlog}>
+          Like
+        </Button>
+      </p>
+      <p>
+        Added by <Link to={`/users/${blog.user.id}`}>{blog.user.name}</Link>
+      </p>
+      {blog.user.id === user.id && (
         <div>
-          likes {blog.likes} <button onClick={likeBlog}>like</button>
+          <Button variant="danger" onClick={removeBlog}>
+            Delete
+          </Button>
         </div>
-        <div>{blog.user.name}</div>
-        {blog.user.id === user.id && (
-          <div>
-            <button onClick={removeBlog}>Delete</button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+      )}
 
-Blog.propTypes = {
-  blog: PropTypes.object.isRequired,
-  user: PropTypes.object.isRequired,
+      <h3 className="mt-3">Comments</h3>
+      <ListGroup variant="flush">
+        {blog.comments.map((comment, i) => (
+          <ListGroup.Item className="ps-0" key={i}>
+            - {comment}
+          </ListGroup.Item>
+        ))}
+      </ListGroup>
+      <Form className="my-3" onSubmit={addComment}>
+        <Form.Control type="text" name="comment" />
+        <Button className="my-3" type="submit">
+          Add Comment
+        </Button>
+      </Form>
+    </>
+  );
 };
 
 export default Blog;

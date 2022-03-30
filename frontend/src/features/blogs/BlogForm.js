@@ -1,19 +1,16 @@
 import { useState } from "react";
+import { Button, Form } from "react-bootstrap";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   setNotification,
   setErrorNotification,
 } from "../notification/notificationSlice";
 import { createBlog } from "./blogsSlice";
 
-const formStyle = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "flex-start",
-};
-
-const BlogForm = ({ onSuccess }) => {
+const BlogForm = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [url, setUrl] = useState("");
@@ -22,14 +19,11 @@ const BlogForm = ({ onSuccess }) => {
     event.preventDefault();
     dispatch(createBlog({ title, author, url }))
       .unwrap()
-      .then(() => {
+      .then((blog) => {
         dispatch(
           setNotification(`A new blog ${title} by ${author} was created`)
         );
-        onSuccess();
-        setTitle("");
-        setAuthor("");
-        setUrl("");
+        navigate(`blogs/${blog.id}`);
       })
       .catch((error) => {
         dispatch(setErrorNotification(error.message));
@@ -37,36 +31,38 @@ const BlogForm = ({ onSuccess }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={formStyle}>
-      <label>
-        Title:{" "}
-        <input
+    <Form onSubmit={handleSubmit}>
+      <Form.Group className="mb-3" controlId="blogTitle">
+        <Form.Label>Title:</Form.Label>
+        <Form.Control
           type="text"
           name="title"
           value={title}
           onChange={({ target }) => setTitle(target.value)}
         />
-      </label>
-      <label>
-        Author:{" "}
-        <input
+      </Form.Group>
+      <Form.Group className="mb-3" controlId="blogAuthor">
+        <Form.Label>Author:</Form.Label>
+        <Form.Control
           type="text"
           name="author"
           value={author}
           onChange={({ target }) => setAuthor(target.value)}
         />
-      </label>
-      <label>
-        Url:{" "}
-        <input
+      </Form.Group>
+      <Form.Group className="mb-3" controlId="blogUrl">
+        <Form.Label>Url:</Form.Label>
+        <Form.Control
           type="text"
           name="url"
           value={url}
           onChange={({ target }) => setUrl(target.value)}
         />
-      </label>
-      <input type="submit" value="Create" />
-    </form>
+      </Form.Group>
+      <Button className="mb-3" type="submit" variant="primary">
+        Create
+      </Button>
+    </Form>
   );
 };
 

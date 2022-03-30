@@ -6,6 +6,7 @@ const buildBlogObj = (params = {}) => ({
   author: params.author ?? faker.name.findName(),
   url: params.url ?? faker.internet.url(),
   likes: params.likes ?? faker.datatype.number(100),
+  comments: params.comments ?? [...Array(3)].map(() => faker.lorem.sentence()),
 });
 
 const createBlog = async (params) => {

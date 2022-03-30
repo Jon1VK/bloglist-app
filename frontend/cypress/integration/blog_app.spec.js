@@ -16,7 +16,7 @@ describe("Blog app", function () {
       cy.get("input[name=username]").type("admin");
       cy.get("input[name=password]").type("admin");
       cy.contains("Login").click();
-      cy.contains("admin logged in");
+      cy.contains("Admin logged in");
     });
 
     it("fails with wrong credentials", function () {
@@ -81,7 +81,7 @@ describe("Blog app", function () {
           .siblings(".blog__details")
           .contains("Delete")
           .click();
-        cy.get("html").should("not.contain", "Blog 2");
+        cy.get("html").should("not.contain", "Blog 2 by Author 2");
       });
 
       it("Blogs are ordered by likes", function () {

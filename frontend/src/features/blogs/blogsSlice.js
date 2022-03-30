@@ -1,9 +1,24 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createEntityAdapter,
+  createSlice,
+} from "@reduxjs/toolkit";
 import blogService from "../../services/blogs";
+
+const blogsAdapter = createEntityAdapter({
+  sortComparer: (a, b) => b.likes - a.likes,
+});
+
+const initialState = blogsAdapter.getInitialState();
 
 export const fetchBlogs = createAsyncThunk(
   "blogs/fetchBlogs",
   async () => await blogService.getAll()
+);
+
+export const fetchBlog = createAsyncThunk(
+  "blogs/fetchBlog",
+  async (blogId) => await blogService.getById(blogId)
 );
 
 export const createBlog = createAsyncThunk(
@@ -18,30 +33,31 @@ export const updateBlog = createAsyncThunk(
 
 export const deleteBlog = createAsyncThunk("blogs/deleteBlog", async (blog) => {
   await blogService.delete(blog);
-  return blog;
+  return blog.id;
 });
+
+export const createBlogComment = createAsyncThunk(
+  "blogs/createComment",
+  async ({ blogId, comment }) =>
+    await blogService.createComment(blogId, comment)
+);
 
 export const blogsSlice = createSlice({
   name: "blogs",
-  initialState: [],
+  initialState,
   extraReducers: {
-    [fetchBlogs.fulfilled]: (state, action) => action.payload,
-    [createBlog.fulfilled]: (state, action) => {
-      state.push(action.payload);
-    },
-    [updateBlog.fulfilled]: (state, action) => {
-      const updatedBlog = action.payload;
-      return state.map((blog) =>
-        blog.id !== updatedBlog.id ? blog : updatedBlog
-      );
-    },
-    [deleteBlog.fulfilled]: (state, action) => {
-      const deletedBlog = action.payload;
-      return state.filter((blog) => blog.id !== deletedBlog.id);
-    },
+    [fetchBlogs.fulfilled]: blogsAdapter.upsertMany,
+    [fetchBlog.fulfilled]: blogsAdapter.upsertOne,
+    [createBlog.fulfilled]: blogsAdapter.addOne,
+    [updateBlog.fulfilled]: blogsAdapter.upsertOne,
+    [deleteBlog.fulfilled]: blogsAdapter.removeOne,
+    [createBlogComment.fulfilled]: blogsAdapter.upsertOne,
   },
 });
 
 const blogsReducer = blogsSlice.reducer;
 
 export default blogsReducer;
+
+export const { selectAll: selectAllBlogs, selectById: selectBlogById } =
+  blogsAdapter.getSelectors((state) => state.blogs);

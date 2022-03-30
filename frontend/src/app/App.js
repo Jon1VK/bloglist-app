@@ -1,60 +1,45 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect } from "react";
 import Blogs from "../features/blogs/Blogs";
-import BlogForm from "../features/blogs/BlogForm";
-import LoginForm from "../components/LoginForm";
+import Users from "../features/users/Users";
+import User from "../features/users/User";
+import LoginForm from "../features/session/LoginForm";
 import Notification from "../features/notification/Notification";
-import Togglable from "../components/Togglable";
-import loginService from "../services/login";
-import { setNotification } from "../features/notification/notificationSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "../features/session/sessionSlice";
+import { Route, Routes } from "react-router-dom";
+import Blog from "../features/blogs/Blog";
+import Header from "../components/Header";
 
 const App = () => {
   const dispatch = useDispatch();
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
-  const blogFormRef = useRef();
+  const user = useSelector((state) => state.session.user);
 
   useEffect(() => {
-    const localStorageUser = localStorage.getItem("user");
-    if (localStorageUser) {
-      const user = JSON.parse(localStorageUser);
-      loginService.setToken(user.token);
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      dispatch(setUser(user));
     }
-  }, []);
-
-  const logoutUser = () => {
-    loginService.logout();
-    setUser(null);
-  };
-
-  const createNotification = (message, isError = false) => {
-    dispatch(setNotification({ message, isError }));
-  };
-
-  const toggleBlogForm = () => {
-    blogFormRef.current.toggleVisibility();
-  };
+  }, [dispatch]);
 
   return user ? (
-    <>
-      <h2>Blogs</h2>
+    <div className="container mb-5">
+      <Header />
       <Notification />
-      <p>
-        {user.name} logged in <button onClick={logoutUser}>logout</button>
-      </p>
-      <Togglable buttonLabel="New blog" ref={blogFormRef}>
-        <BlogForm onSuccess={toggleBlogForm} />
-      </Togglable>
-      <Blogs user={user} />
-    </>
+      <Routes>
+        <Route index element={<Blogs />} />
+        <Route path="users" element={<Users />} />
+        <Route path="users/:userId" element={<User />} />
+        <Route path="blogs/:blogId" element={<Blog />} />
+      </Routes>
+    </div>
   ) : (
-    <>
-      <h2>Log in to application</h2>
+    <div className="container">
+      <Header />
       <Notification />
-      <LoginForm
-        onSuccess={setUser}
-        onError={(error) => createNotification(error.message, true)}
-      />
-    </>
+      <h2 className="my-3">Log in to application</h2>
+      <p>Test the app with already filled demo credentials</p>
+      <LoginForm />
+    </div>
   );
 };
 

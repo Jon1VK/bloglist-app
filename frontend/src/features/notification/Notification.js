@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { clearNotification } from "./notificationSlice";
-import styles from "./notification.module.css";
+import { Alert } from "react-bootstrap";
 
 const Notification = () => {
   const dispatch = useDispatch();
@@ -19,9 +19,9 @@ const Notification = () => {
   if (!message) return null;
 
   return (
-    <div className={`${styles.notification} ${isError && styles.error}`}>
+    <Alert className="my-3" variant={isError ? "danger" : "success"}>
       {message}
-    </div>
+    </Alert>
   );
 };
 

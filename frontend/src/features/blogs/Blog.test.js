@@ -1,16 +1,19 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Provider } from "react-redux";
+import store from "../../store";
+import blogService from "../../services/blogs";
 import Blog from "./Blog";
 
-jest.mock("../services/blogs", () => ({
+jest.mock("../../services/blogs", () => ({
   __esModule: true,
   default: {
-    updateLikes: () => Promise.resolve(),
+    update: jest.fn(),
   },
 }));
 
 describe(Blog, () => {
-  let blogContainer, handleBlogUpdate, handleBlogDelete;
+  let blogContainer;
 
   const blog = {
     title: "Test Blog",
@@ -24,15 +27,10 @@ describe(Blog, () => {
   };
 
   beforeEach(() => {
-    handleBlogUpdate = jest.fn();
-    handleBlogDelete = jest.fn();
     blogContainer = render(
-      <Blog
-        blog={blog}
-        user={blog.user}
-        onBlogUpdate={handleBlogUpdate}
-        onBlogDelete={handleBlogDelete}
-      />
+      <Provider store={store}>
+        <Blog blog={blog} user={blog.user} />
+      </Provider>
     ).container;
   });
 
@@ -56,10 +54,10 @@ describe(Blog, () => {
     expect(blogDetails).toHaveStyle("display: block");
   });
 
-  test("After clicking the like button twice, the onBlogUpdate callback is called twice", () => {
+  test("After clicking the like button twice, the blogservice's update is called twice", async () => {
     const button = screen.getByText("like");
     userEvent.click(button);
     userEvent.click(button);
-    waitFor(() => expect(handleBlogUpdate.mock.calls).toHaveLength(2));
+    await waitFor(() => expect(blogService.update).toHaveBeenCalledTimes(2));
   });
 });

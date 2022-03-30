@@ -67,4 +67,18 @@ blogRouter.put("/:id", async (request, response) => {
   }
 });
 
+blogRouter.post("/:id/comments", async (request, response) => {
+  const comment = request.body.comment;
+  if (!comment) {
+    return response.status(422).json({ error: "comment can't be empty" });
+  }
+
+  const blog = await Blog.findById(request.params.id);
+  if (!blog) return response.status(404).end();
+
+  blog.comments.push(comment);
+  const createdBlog = await blog.save();
+  response.status(201).json(await createdBlog.populate("user", { blogs: 0 }));
+});
+
 module.exports = blogRouter;

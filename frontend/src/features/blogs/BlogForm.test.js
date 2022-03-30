@@ -1,16 +1,13 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Provider } from "react-redux";
 import BlogForm from "./BlogForm";
+import store from "../../store";
 
-jest.mock("../services/blogs", () => ({
+jest.mock("../../services/blogs", () => ({
   __esModule: true,
   default: {
-    create: (title, author, url) =>
-      Promise.resolve({
-        title,
-        author,
-        url,
-      }),
+    create: jest.fn(),
   },
 }));
 
@@ -21,9 +18,13 @@ describe(BlogForm, () => {
     url: "example.com",
   };
 
-  test("Calls onSuccess with right details after clicking the create button", () => {
+  test("Calls onSuccess with right details after clicking the create button", async () => {
     const handleSuccess = jest.fn();
-    render(<BlogForm onSuccess={handleSuccess} />);
+    render(
+      <Provider store={store}>
+        <BlogForm onSuccess={handleSuccess} />
+      </Provider>
+    );
     const titleInput = screen.getByRole("textbox", { name: /title/i });
     const authorInput = screen.getByRole("textbox", { name: /author/i });
     const urlInput = screen.getByRole("textbox", { name: /url/i });
@@ -32,9 +33,6 @@ describe(BlogForm, () => {
     userEvent.type(urlInput, blog.url);
     const button = screen.getByRole("button");
     userEvent.click(button);
-    waitFor(() => {
-      expect(handleSuccess.mock.calls).toHaveLength(1);
-      expect(handleSuccess.mock.calls[0][0]).toEqual(blog);
-    });
+    await waitFor(() => expect(handleSuccess).toHaveBeenCalledTimes(1));
   });
 });
